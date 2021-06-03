@@ -6,7 +6,7 @@ import Notification from "./components/UI/Notification";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { uiActions } from "./store/ui-slice";
-import { sendCartData } from "./store/cart-slice";
+import { sendCartData, fetchCartData } from "./store/cart-actions";
 import * as appSetting from "./appSetting";
 
 // to prevent sending empty data to firebase when component first mount (page refreshed)
@@ -21,6 +21,10 @@ function App() {
   const cart = useSelector((state) => state.cart);
   const notification = useSelector((state) => state.ui.notification);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchCartData());
+  }, []);
 
   // *** IMPORTANT ***
   // we are going to send request
@@ -43,7 +47,12 @@ function App() {
     // not only accept object payload, but also accept action creator function
     // in this case `sendCartData` function (a function that returns action creator function)
     // the react-toolkit will execute the returning function for us
-    dispatch(sendCartData(cart));
+
+    // here, we use the `changed` flag to prevent sending the PUT request
+    // when page loads
+    if (cart.changed) {
+      dispatch(sendCartData(cart));
+    }
     // -------------------------------
     // METHOD 1: use useEffect directly
     // -------------------------------
