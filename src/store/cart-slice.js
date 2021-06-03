@@ -1,4 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { uiActions } from "./ui-slice";
+import * as appSetting from "../appSetting";
 
 const cartSlice = createSlice({
   name: "cart",
@@ -38,6 +40,64 @@ const cartSlice = createSlice({
     },
   },
 });
+
+// create action creator (aka Thunk)
+// it is a function that returns another function
+export const sendCartData = (cart) => {
+  return async (dispatch) => {
+    // pending
+
+    dispatch(
+      uiActions.showNotification({
+        status: "pending",
+        title: "Sending...",
+        message: "Sending cart data!",
+      })
+    );
+
+    const sendRequest = async () => {
+      const response = await fetch(appSetting.firebaseUrlCart, {
+        method: "PUT",
+        body: JSON.stringify(cart),
+      });
+
+      if (!response.ok) {
+        // error
+        dispatch(
+          uiActions.showNotification({
+            status: "error",
+            title: "Error!",
+            message: "Sending cart data failed!",
+          })
+        );
+
+        throw new Error("Sending cart data failed.");
+      }
+    };
+
+    try {
+      await sendRequest();
+
+      // success
+      dispatch(
+        uiActions.showNotification({
+          status: "success",
+          title: "Success!",
+          message: "Sent cart data successfully!",
+        })
+      );
+    } catch (error) {
+      // error
+      dispatch(
+        uiActions.showNotification({
+          status: "error",
+          title: "Error!",
+          message: error.message,
+        })
+      );
+    }
+  };
+};
 
 export const cartActions = cartSlice.actions;
 export default cartSlice;
